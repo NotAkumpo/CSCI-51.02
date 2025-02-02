@@ -1,47 +1,47 @@
-#include "Node.hpp"
+#include "IntNode.hpp"
 #include <iostream>
 
 using namespace std;
 
-struct Stack{
+struct IntStack{
     private:
 
-        Node* top;
+        IntNode* top;
         int size;
 
     public:
         
-        Stack(){
+        IntStack(){
             top = nullptr;
             size = 0;
         }
 
         void push(int val){
             if (size > 0){
-                Node* pushed = new Node(val);
+                IntNode* pushed = new IntNode(val);
                 pushed->setNext(top);
                 top = pushed;
                 size++;
-                cout << "Pushed " << val << " onto the stack." << endl;
+                cout << "-> " << val << " was PUSHED onto the stack." << endl;
             }
             else {
-                top = new Node(val);
+                top = new IntNode(val);
                 size++;
-                cout << "Pushed " << val << " onto the stack." << endl;
+                cout << "-> " << val << " was PUSHED onto the stack." << endl;
             }
         }
 
         void pop(){
             if (size > 0){
-                Node* popped = top;
+                IntNode* popped = top;
                 if (size == 1){
                     top = nullptr;
                 }
                 else {
                     top = top->returnNext();
                 }
-                cout << "Popped " << popped->returnValue() << " from the stack." << endl;
-                delete popped;
+                cout << "<- " << popped->returnValue() << " was POPPED from the stack." << endl;
+                operator delete(popped);
                 popped = nullptr;
                 size--;
             }
@@ -52,14 +52,14 @@ struct Stack{
 
         void printStack(){
             if (size == 0){
+                cout << endl;
                 cout << "Current Stack is empty." << endl;
-                return;
             }
             else {
                 cout << endl;
                 cout << "Current Stack" << endl;
 
-                Node* next = top->returnNext();
+                IntNode* next = top->returnNext();
 
                 cout << "Top: " << top->returnValue() << endl;
                 while (next != nullptr){
@@ -70,9 +70,10 @@ struct Stack{
             cout << endl;
         }
 
-        ~Stack(){
-            cout << "Stack Deleted!" << endl;
+        ~IntStack(){
             delete top;
             top = nullptr;
+            cout << "Stack Deleted!" << endl;
+            cout << endl;
         }
 };

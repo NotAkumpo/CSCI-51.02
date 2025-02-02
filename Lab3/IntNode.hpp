@@ -1,18 +1,21 @@
+#include <iostream>
 
-struct Node {
+using namespace std;
+
+struct IntNode {
     private:
 
         int value;
-        Node* next;
+        IntNode* next;
 
     public:
 
-        Node(int val){
+        IntNode(int val){
             value = val;
             next = nullptr;
         }
 
-        void setNext(Node* n){
+        void setNext(IntNode* n){
             next = n;
         }
 
@@ -20,12 +23,13 @@ struct Node {
             return value;
         }
 
-        Node* returnNext(){
+        IntNode* returnNext(){
             return next;
         }
 
-        ~Node(){
-            // delete next;
+        ~IntNode(){
+            delete next;
+            cout << "Deleted Node with value " << value << endl;
             next = nullptr;
         }
         

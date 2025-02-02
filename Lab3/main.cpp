@@ -1,42 +1,48 @@
-#include "Stack.hpp"
+#include "IntStack.hpp"
 
 int main(void){
 
-    Stack s;
-    s.push(5);
-    s.push(10);
-    s.push(15);
-    s.pop();
-    s.printStack();
-    s.push(20);
-    s.push(25);
-    s.printStack();
+    cout << endl;
 
-    Stack y;
-    y.printStack();
+    IntStack* a = new IntStack();
+    a->push(5);
+    a->push(10);
+    a->push(15);
+    a->push(20);
+    a->push(25);
+    a->pop();
+    a->printStack();
+    a->push(30);
+    a->pop();
+    a->push(35);
+    a->printStack();
+    delete a;
 
-    Stack z;
-    z.push(1);
-    z.push(2);
-    z.push(3);
-    z.push(4);
-    z.push(5);
-    z.push(6);
-    z.push(7);
-    z.push(8);
-    z.push(9);
-    z.push(10);
-    z.pop();
-    z.pop();
-    z.pop();
-    z.pop();
-    z.pop();
-    z.printStack();
+    IntStack* b = new IntStack();
+    b->pop();
+    b->printStack();
+    b->push(1);
+    b->push(2);
+    b->push(3);
+    b->push(4);
+    b->push(5);
+    b->pop();
+    b->pop();
+    b->pop();
+    b->pop();
+    b->pop();
+    b->pop();
+    b->printStack();
+    delete b;
 
-    Stack a;
-    a.push(1);
-    a.pop();
-    a.printStack();
+    IntStack* c = new IntStack();
+    c->push(-12345);
+    c->push(45678);
+    c->push(0);
+    c->push(999);
+    c->pop();
+    c->printStack();
+    delete c;
 
     return 0;
 }
