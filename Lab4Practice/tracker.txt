@@ -1,0 +1,11 @@
+1. Yes by shifting left 4 times, which results in a *16, since 1 shift left results in a *2 and doing this 4 times results in *2^4. Then 
+adding itself to this result 3 times. This gives (x * 16) + 3x which is equivalent to 19x.
+
+2. Assembly does this a little differently. Shift left 3 times then add 1 resulting in 9x. Then add 9x to itself resulting in 18x. Then add 1
+resulting in 19x.
+
+3. Standard mull operation.
+
+4. 0 - x. Then -x + -x resulting in -2x.
+
+5. Just outputs 0.

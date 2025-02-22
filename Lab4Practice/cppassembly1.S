@@ -12,6 +12,8 @@ _Z5dummyiii:
 	subq	$16, %rsp
 	.seh_stackalloc	16
 	.seh_endprologue
+
+
 	movl	%ecx, 16(%rbp)
 	movl	%edx, 24(%rbp)
 	movl	%r8d, 32(%rbp)
@@ -29,5 +31,7 @@ _Z5dummyiii:
 	addq	$16, %rsp
 	popq	%rbp
 	ret
+
+	
 	.seh_endproc
 	.ident	"GCC: (Rev2, Built by MSYS2 project) 14.2.0"
