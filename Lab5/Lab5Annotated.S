@@ -80,10 +80,10 @@ main:
 	call	_ZNSirsERi	#cin >> t
 .LEHE0:
 	movl	$0, -12(%rbp)
-.L10:
-	movl	-36(%rbp), %eax
-	cmpl	%eax, -12(%rbp)
-	jge	.L4
+.L10:	#Test case loop
+	movl	-36(%rbp), %eax		
+	cmpl	%eax, -12(%rbp)		
+	jge	.L4		#Skip to .L4 if all test cases done
 	movq	%rsp, %rax
 	movq	%rax, %rbx
 	leaq	-40(%rbp), %rax
@@ -181,9 +181,9 @@ main:
 	call	_ZNSirsERi	#Read z
 	addl	$1, -8(%rbp)
 	jmp	.L6
-.L5:
+.L5:	#End of point reading loop
 	movl	$0, -4(%rbp)
-.L8:
+.L8:	#Start of distance calculation loop
 	movl	-40(%rbp), %eax
 	subl	$1, %eax
 	cmpl	%eax, -4(%rbp)
@@ -225,7 +225,7 @@ main:
 	call	_ZNSolsEPFRSoS_E
 	addl	$1, -4(%rbp)
 	jmp	.L8
-.L7:
+.L7:	#End of distance calculation loop
 	movl	-36(%rbp), %eax
 	subl	$1, %eax
 	cmpl	%eax, -12(%rbp)
@@ -234,11 +234,11 @@ main:
 	movq	.refptr._ZSt4cout(%rip), %rcx
 	call	_ZNSolsEPFRSoS_E
 .LEHE1:
-.L9:
+.L9:	#Optional blank line between test cases
 	movq	%rbx, %rsp
 	addl	$1, -12(%rbp)
 	jmp	.L10
-.L4:
+.L4:	#Exit after processing all test cases
 	movl	$0, %eax
 	jmp	.L14
 .L13:
@@ -247,7 +247,7 @@ main:
 .LEHB2:
 	call	_Unwind_Resume
 .LEHE2:
-.L14:
+.L14:	#Program exit and cleanup
 	leaq	8(%rbp), %rsp
 	popq	%rbx
 	popq	%rsi
