@@ -10,7 +10,8 @@ int main(int argc, char* argv[]){
     int f = fork();
 
     if (f == 0){
-        if (execv("/usr/bin/xclock", argv) == -1){
+        // export LC_ALL=C <- run this command in ubuntu before running the file
+        if (execl("/usr/bin/xclock", "myXclock", NULL) == -1){
             cout << "Exec() for xclock failed";
         }
     } else {
