@@ -39,7 +39,7 @@ void* run_function( void* ptr ){
             break;
         }
         total += term;
-        printf("Thread %d: k = %d\n", *i, k);
+        // printf("Thread %d: k = %d\n", *i, k);
         k = k + (N * 2);
         if (N % 2 == 1){
             sign = -sign;
@@ -61,7 +61,7 @@ int main(int argc, char *argv[]){
     sum = malloc(sizeof(long double) * N);
 
     if (N <= 0){
-        printf("Error! N must be greater than 0!\n");
+        printf("You need at least 1 thread!\n");
         abort();
     }
 
@@ -80,7 +80,7 @@ int main(int argc, char *argv[]){
     for (int i=0; i<N; i++){
         result += sum[i];
     }
-    printf("The sum of the series is: %Lf\n", result);
+    printf("The predicted series sum of the program is: %Lf\n", result);
     long double actualSum = sinl(X);
     printf("The actual sum of the series is: %Lf\n", actualSum);
 
