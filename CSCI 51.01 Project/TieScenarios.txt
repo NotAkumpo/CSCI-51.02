@@ -1,0 +1,14 @@
+FCFS Same Arrival Time
+    -Whichever is higher up in the list
+
+SJF
+    -Arrival time then whichever is higher up in the list
+
+SRTF
+    -Arrival time then whichever is higher up in the list
+
+Priority 
+    -Whichever has shorter burst time then whichever is higher up in the list
+
+RR
+    -New arrivals first then arrival time then whichever is higher up in the list
