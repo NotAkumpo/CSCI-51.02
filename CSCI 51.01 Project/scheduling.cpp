@@ -70,7 +70,6 @@ void FCFS(int numProcesses, vector<Process> processes) {
         
         if (process.getArrival() < currentTime) {
             waitTime += (termination - process.getArrival());
-            cout << "Wait Time: " << waitTime << endl;
         } else {
             idleTime += (process.getArrival() - termination);
             currentTime = process.getArrival();
@@ -91,17 +90,50 @@ void FCFS(int numProcesses, vector<Process> processes) {
     cout << "Response Time: " << (static_cast<double>(responseTime) / numProcesses) << endl; 
 }
 
-void STF(int numProcesses, vector<Process> processes) {
-    
-    // cout << "Round Robin Scheduling Algorithm" << endl;
-    // // Print the processes for debugging
-    // for (int j=0; j < numProcesses; j++){
-    //     cout << "Process " << j+1 << ": Arrival: " << processes[j].getArrival() 
-    //          << ", Burst: " << processes[j].getBurst() 
-    //          << ", Priority: " << processes[j].getPriority() 
-    //          << ", Index: " << processes[j].getIndex() << endl;
-    // }
-    // cout << endl;
+// Comparator for sorting processes by burst time
+bool getShorterBurst(const Process& p1, const Process& p2) {
+    if (p1.getBurst() == p2.getBurst()) {
+        return getEarlier(p1, p2); // Sort by arrival time if burst times are equal
+    }
+    return p1.getBurst() < p2.getBurst();
+};
+
+void SJF(int numProcesses, vector<Process> processes) {
+    // Sort processes by burst time
+    sort(processes.begin(), processes.end(), getShorterBurst);
+
+    int currentTime = 0;
+    int idleTime = 0;
+    int waitTime = 0;
+    int turnaround = 0;
+    int responseTime = 0;
+    int firstResponse = 0;
+    int termination = 0;
+
+
+    for (const Process& process : processes) {
+        firstResponse = max(currentTime, process.getArrival());
+        
+        if (process.getArrival() < currentTime) {
+            waitTime += (termination - process.getArrival());
+        } else {
+            idleTime += (process.getArrival() - termination);
+            currentTime = process.getArrival();
+        }
+        termination = firstResponse + process.getBurst();
+        
+        turnaround += (termination - process.getArrival());
+        responseTime += (firstResponse - process.getArrival());
+
+        cout << firstResponse << " " << process.getIndex() << " " << process.getBurst() << "X" << endl;
+        currentTime += process.getBurst();
+    }
+
+    cout << "CPU Utilization: " << (static_cast<double>(currentTime - idleTime) / currentTime * 100) << "%" << endl;
+    cout << "Throughput: " << (static_cast<double>(numProcesses) / currentTime) << endl;
+    cout << "Waiting Time: " << (static_cast<double>(waitTime) / numProcesses) << endl;
+    cout << "Turnaround Time: " << (static_cast<double>(turnaround) / numProcesses) << endl;
+    cout << "Response Time: " << (static_cast<double>(responseTime) / numProcesses) << endl; 
 };
 
 void SRTF(int numProcesses, vector<Process> processes) {
@@ -162,8 +194,8 @@ int main(void){
         else if (schedAlgo == "FCFS"){
             FCFS(numProcesses, processes);
         }
-        else if (schedAlgo == "STF"){
-            STF(numProcesses, processes);
+        else if (schedAlgo == "SJF"){
+            SJF(numProcesses, processes);
         }
         else if (schedAlgo == "P"){
             PQ(numProcesses, processes);
