@@ -12,6 +12,11 @@ struct Process {
         int priority;
         int remainingTime;
         int index;
+        int firstResponse;
+        int termination;
+        int waiting;
+        int turnaround;
+        int responseTime;
 
     public:
         Process(int arrival, int burst, int priority, int index) {
@@ -20,6 +25,11 @@ struct Process {
             this->priority = priority;
             this->remainingTime = burst;
             this->index = index;
+            this->firstResponse = 0;
+            this->termination = 0;
+            this->waiting = 0;
+            this->turnaround = 0;
+            this->responseTime = 0;
         }
 
         // Getters for private members
@@ -42,6 +52,51 @@ struct Process {
         int getIndex() const {
             return index;
         }
+
+        int getFirstResponse() const {
+            return firstResponse;
+        }
+
+        int getTermination() const {
+            return termination;
+        }
+
+        int getWaiting() const {
+            return waiting;
+        }
+
+        int getTurnaround() const {
+            return turnaround;
+        }
+
+        int getResponseTime() const {
+            return responseTime;
+        }
+
+        // Setters for private members
+        void setRemainingTime(int remainingTime) {
+            this->remainingTime = remainingTime;
+        }
+
+        void setFirstResponse(int firstResponse) {
+            this->firstResponse = firstResponse;
+        }
+
+        void setTermination(int termination) {
+            this->termination = termination;
+        }
+
+        void setWaiting(int waiting) {
+            this->waiting = waiting;
+        }
+
+        void setTurnaround(int turnaround) {
+            this->turnaround = turnaround;
+        }
+
+        void setResponseTime(int responseTime) {
+            this->responseTime = responseTime;
+        }
 };
 
 // Comparator for sorting processes by arrival time
@@ -62,25 +117,23 @@ void FCFS(int numProcesses, vector<Process> processes) {
     int turnaround = 0;
     int responseTime = 0;
     int firstResponse = 0;
-    int termination = 0;
 
 
     for (const Process& process : processes) {
         firstResponse = max(currentTime, process.getArrival());
         
         if (process.getArrival() < currentTime) {
-            waitTime += (termination - process.getArrival());
+            waitTime += (currentTime - process.getArrival());
         } else {
-            idleTime += (process.getArrival() - termination);
+            idleTime += (process.getArrival() - currentTime);
             currentTime = process.getArrival();
         }
-        termination = firstResponse + process.getBurst();
         
-        turnaround += (termination - process.getArrival());
         responseTime += (firstResponse - process.getArrival());
 
         cout << firstResponse << " " << process.getIndex() << " " << process.getBurst() << "X" << endl;
         currentTime += process.getBurst();
+        turnaround += (currentTime - process.getArrival());
     }
 
     cout << "CPU Utilization: " << (static_cast<double>(currentTime - idleTime) / currentTime * 100) << "%" << endl;
@@ -90,17 +143,11 @@ void FCFS(int numProcesses, vector<Process> processes) {
     cout << "Response Time: " << (static_cast<double>(responseTime) / numProcesses) << endl; 
 }
 
-// Comparator for sorting processes by burst time
-bool getShorterBurst(const Process& p1, const Process& p2) {
-    if (p1.getBurst() == p2.getBurst()) {
-        return getEarlier(p1, p2); // Sort by arrival time if burst times are equal
-    }
-    return p1.getBurst() < p2.getBurst();
-};
-
 void SJF(int numProcesses, vector<Process> processes) {
     // Sort processes by burst time
-    sort(processes.begin(), processes.end(), getShorterBurst);
+    sort(processes.begin(), processes.end(), getEarlier);
+
+    vector<Process> queue;
 
     int currentTime = 0;
     int idleTime = 0;
@@ -108,25 +155,50 @@ void SJF(int numProcesses, vector<Process> processes) {
     int turnaround = 0;
     int responseTime = 0;
     int firstResponse = 0;
-    int termination = 0;
+    int pn = 0;
+    int qn = 0;
 
-
-    for (const Process& process : processes) {
-        firstResponse = max(currentTime, process.getArrival());
-        
-        if (process.getArrival() < currentTime) {
-            waitTime += (termination - process.getArrival());
-        } else {
-            idleTime += (process.getArrival() - termination);
-            currentTime = process.getArrival();
+    while (!queue.empty() || !processes.empty()){
+        // Empty queue means the CPU is idle
+        if (queue.empty()){
+            queue.push_back(processes[0]);
+            processes.erase(processes.begin());
+            if (queue[0].getArrival() > currentTime) {
+                idleTime += (queue[0].getArrival() - currentTime);
+                currentTime = queue[0].getArrival();
+            }
         }
-        termination = firstResponse + process.getBurst();
-        
-        turnaround += (termination - process.getArrival());
-        responseTime += (firstResponse - process.getArrival());
+        // Insert into queue the processes that have arrived in the correct order
+        while (!processes.empty() && processes[0].getArrival() <= currentTime){
+            for (int i = 0; i < queue.size(); i++){
+                if (processes[0].getBurst() < queue[i].getBurst()){
+                    queue.insert(queue.begin() + i, processes[0]);
+                    break;
+                }
+                else if (processes[0].getBurst() == queue[i].getBurst()){
+                    if (processes[0].getArrival() < queue[i].getArrival()){
+                        queue.insert(queue.begin() + i, processes[0]);
+                    }
+                    else {
+                        queue.insert(queue.begin() + i + 1, processes[0]);
+                    }
+                    break;
+                }
+                else if (i == queue.size() - 1){
+                    queue.push_back(processes[0]);
+                    break;
+                }
+            }
+            processes.erase(processes.begin());
+        }
+        waitTime += (currentTime - queue[0].getArrival());
 
-        cout << firstResponse << " " << process.getIndex() << " " << process.getBurst() << "X" << endl;
-        currentTime += process.getBurst();
+
+        cout << currentTime << " " << queue[0].getIndex() << " " << queue[0].getBurst() << "X" << endl;
+        responseTime += (currentTime - queue[0].getArrival());
+        currentTime += queue[0].getBurst();
+        turnaround += (currentTime - queue[0].getArrival());
+        queue.erase(queue.begin());
     }
 
     cout << "CPU Utilization: " << (static_cast<double>(currentTime - idleTime) / currentTime * 100) << "%" << endl;
