@@ -25,7 +25,7 @@ struct Process {
             this->priority = priority;
             this->remainingTime = burst;
             this->index = index;
-            this->firstResponse = 0;
+            this->firstResponse = -1;
             this->termination = 0;
             this->waiting = 0;
             this->turnaround = 0;
@@ -74,8 +74,8 @@ struct Process {
         }
 
         // Setters for private members
-        void setRemainingTime(int remainingTime) {
-            this->remainingTime = remainingTime;
+        void minusRemainingTime(int timeSlice) {
+            this->remainingTime -= timeSlice;
         }
 
         void setFirstResponse(int firstResponse) {
@@ -86,16 +86,16 @@ struct Process {
             this->termination = termination;
         }
 
-        void setWaiting(int waiting) {
-            this->waiting = waiting;
+        void addWaiting(int waitTime) {
+            this->waiting += waitTime;
         }
 
         void setTurnaround(int turnaround) {
             this->turnaround = turnaround;
         }
 
-        void setResponseTime(int responseTime) {
-            this->responseTime = responseTime;
+        void updateResponseTime(int timeSpent) {
+            this->responseTime -= timeSpent;
         }
 };
 
@@ -147,6 +147,7 @@ void SJF(int numProcesses, vector<Process> processes) {
     // Sort processes by burst time
     sort(processes.begin(), processes.end(), getEarlier);
 
+    // Make a queue to hold the processes
     vector<Process> queue;
 
     int currentTime = 0;
@@ -155,11 +156,9 @@ void SJF(int numProcesses, vector<Process> processes) {
     int turnaround = 0;
     int responseTime = 0;
     int firstResponse = 0;
-    int pn = 0;
-    int qn = 0;
 
     while (!queue.empty() || !processes.empty()){
-        // Empty queue means the CPU is idle
+        // If queue is empty, add the first process to the queue
         if (queue.empty()){
             queue.push_back(processes[0]);
             processes.erase(processes.begin());
@@ -209,10 +208,230 @@ void SJF(int numProcesses, vector<Process> processes) {
 };
 
 void SRTF(int numProcesses, vector<Process> processes) {
+    // Sort processes by burst time
+    sort(processes.begin(), processes.end(), getEarlier);
+
+    // Make a queue to hold the processes
+    vector<Process> queue;
+
+    int currentTime = 0;
+    int idleTime = 0;
+    int waitTime = 0;
+    int turnaround = 0;
+    int responseTime = 0;
+    int firstResponse = 0;
+    int nextArrival = 0;
+    int timeSlice = 0;
+    int coStarttime = 0;
+    int coTimeslice = 0;
+    int coIndex = 0;
+    bool noTerminate = false;
+    bool carryOver = false;
+
+    while (!queue.empty() || !processes.empty()){
+        // If queue is empty, add the first process to the queue
+        if (queue.empty()){
+            queue.push_back(processes[0]);
+            processes.erase(processes.begin());
+            if (queue[0].getArrival() > currentTime) {
+                idleTime += (queue[0].getArrival() - currentTime);
+                currentTime = queue[0].getArrival();
+            }
+        }
+        if (!processes.empty()){
+            nextArrival = processes[0].getArrival();
+            timeSlice = nextArrival - currentTime;
+        }
+        else {
+            timeSlice = INT_MAX;
+        }
+
+        if (queue[0].getFirstResponse() == -1){
+            queue[0].setFirstResponse(currentTime);
+            responseTime += (currentTime - queue[0].getArrival());
+        }
+        
+        if (timeSlice >= queue[0].getRemainingTime()){
+            noTerminate = false;
+            cout << currentTime << " " << queue[0].getIndex() << " " << queue[0].getRemainingTime() << "X" << endl;
+            queue[0].setTurnaround(currentTime + queue[0].getRemainingTime() - queue[0].getArrival());
+            waitTime += (queue[0].getTurnaround() - queue[0].getBurst());
+            turnaround += queue[0].getTurnaround();
+            currentTime += queue[0].getRemainingTime();
+            queue.erase(queue.begin());
+        }
+        else {
+            noTerminate = true;
+            coIndex = queue[0].getIndex();
+            coTimeslice += timeSlice;
+            queue[0].minusRemainingTime(timeSlice);
+            if (!carryOver){
+                coStarttime = currentTime;
+            }
+            currentTime += timeSlice;
+        }
+
+        while (!processes.empty() && processes[0].getArrival() == currentTime){
+            for (int i = 0; i < queue.size(); i++){
+                if (i == 0){
+                    carryOver = false;
+                }
+                else {
+                    carryOver = true;
+                }
+                if (processes[0].getRemainingTime() < queue[i].getRemainingTime()){
+                    queue.insert(queue.begin() + i, processes[0]);
+                    carryOver = false;
+                    break;
+                }
+                else if (processes[0].getRemainingTime() == queue[i].getRemainingTime()){
+                    if (processes[0].getArrival() < queue[i].getArrival()){
+                        queue.insert(queue.begin() + i, processes[0]);
+                        carryOver = false;
+                    }
+                    else {
+                        queue.insert(queue.begin() + i + 1, processes[0]);
+                        carryOver = true;
+                    }
+                    break;
+                }
+                else if (i == queue.size() - 1){
+                    queue.push_back(processes[0]);
+                    carryOver = true;
+                    break;
+                }
+            }
+            processes.erase(processes.begin());
+        }
+
+        if (noTerminate && !carryOver){
+            cout << coStarttime << " " << coIndex << " " << coTimeslice << endl;
+            coTimeslice = 0;
+        }
+
+    }
+
+    cout << "CPU Utilization: " << (static_cast<double>(currentTime - idleTime) / currentTime * 100) << "%" << endl;
+    cout << "Throughput: " << (static_cast<double>(numProcesses) / currentTime) << endl;
+    cout << "Waiting Time: " << (static_cast<double>(waitTime) / numProcesses) << endl;
+    cout << "Turnaround Time: " << (static_cast<double>(turnaround) / numProcesses) << endl;
+    cout << "Response Time: " << (static_cast<double>(responseTime) / numProcesses) << endl; 
 
 };
 
 void PQ(int numProcesses, vector<Process> processes) {
+    // Sort processes by burst time
+    sort(processes.begin(), processes.end(), getEarlier);
+
+    // Make a queue to hold the processes
+    vector<Process> queue;
+
+    int currentTime = 0;
+    int idleTime = 0;
+    int waitTime = 0;
+    int turnaround = 0;
+    int responseTime = 0;
+    int firstResponse = 0;
+    int nextArrival = 0;
+    int timeSlice = 0;
+    int coStarttime = 0;
+    int coTimeslice = 0;
+    int coIndex = 0;
+    bool noTerminate = false;
+    bool carryOver = false;
+
+    while (!queue.empty() || !processes.empty()){
+        // If queue is empty, add the first process to the queue
+        if (queue.empty()){
+            queue.push_back(processes[0]);
+            processes.erase(processes.begin());
+            if (queue[0].getArrival() > currentTime) {
+                idleTime += (queue[0].getArrival() - currentTime);
+                currentTime = queue[0].getArrival();
+            }
+        }
+        if (!processes.empty()){
+            nextArrival = processes[0].getArrival();
+            timeSlice = nextArrival - currentTime;
+        }
+        else {
+            timeSlice = INT_MAX;
+        }
+
+        if (queue[0].getFirstResponse() == -1){
+            queue[0].setFirstResponse(currentTime);
+            responseTime += (currentTime - queue[0].getArrival());
+        }
+        
+        if (timeSlice >= queue[0].getRemainingTime()){
+            noTerminate = false;
+            cout << currentTime << " " << queue[0].getIndex() << " " << queue[0].getRemainingTime() << "X" << endl;
+            queue[0].setTurnaround(currentTime + queue[0].getRemainingTime() - queue[0].getArrival());
+            waitTime += (queue[0].getTurnaround() - queue[0].getBurst());
+            turnaround += queue[0].getTurnaround();
+            currentTime += queue[0].getRemainingTime();
+            queue.erase(queue.begin());
+        }
+        else {
+            noTerminate = true;
+            coIndex = queue[0].getIndex();
+            coTimeslice += timeSlice;
+            queue[0].minusRemainingTime(timeSlice);
+            if (!carryOver){
+                coStarttime = currentTime;
+            }
+            currentTime += timeSlice;
+        }
+
+        while (!processes.empty() && processes[0].getArrival() == currentTime){
+            for (int i = 0; i < queue.size(); i++){
+                if (i == 0){
+                    carryOver = false;
+                }
+                else {
+                    carryOver = true;
+                }
+                if (processes[0].getPriority() > queue[i].getPriority()){
+                    queue.insert(queue.begin() + i, processes[0]);
+                    break;
+                }
+                else if (processes[0].getPriority() == queue[i].getPriority()){
+                    if (processes[0].getBurst() < queue[i].getBurst()){
+                        queue.insert(queue.begin() + i, processes[0]);
+                    }
+                    else if (processes[0].getBurst() == queue[i].getBurst()){
+                        if (processes[0].getArrival() < queue[i].getArrival()){
+                            queue.insert(queue.begin() + i, processes[0]);
+                        }
+                        else {
+                            queue.insert(queue.begin() + i + 1, processes[0]);
+                        }
+                    }
+                    else {
+                        queue.insert(queue.begin() + i + 1, processes[0]);
+                    }
+                    break;
+                }
+                else if (i == queue.size() - 1){
+                    queue.push_back(processes[0]);
+                    break;
+                }
+            }
+            processes.erase(processes.begin());
+        }
+
+        if (noTerminate && !carryOver){
+            cout << coStarttime << " " << coIndex << " " << coTimeslice << endl;
+            coTimeslice = 0;
+        }
+
+    }
+
+    cout << "CPU Utilization: " << (static_cast<double>(currentTime - idleTime) / currentTime * 100) << "%" << endl;
+    cout << "Throughput: " << (static_cast<double>(numProcesses) / currentTime) << endl;
+    cout << "Waiting Time: " << (static_cast<double>(waitTime) / numProcesses) << endl;
+    cout << "Turnaround Time: " << (static_cast<double>(turnaround) / numProcesses) << endl;
+    cout << "Response Time: " << (static_cast<double>(responseTime) / numProcesses) << endl;
 
 };
 
